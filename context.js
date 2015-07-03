@@ -31,7 +31,6 @@ chrome.runtime.onInstalled.addListener(function() {
     if (url === undefined) { return; }
 
     var id = getIdFromUrl(url);
-    console.log(url);
 
     if (id === null) { return; } // ignore, no id
 
@@ -224,6 +223,8 @@ function isIdList(str) {
     var s = splitStr[i];
 
     if (isNaN(s)) { return false; }
+
+    if (isNaN(parseInt(s))) { return null; } // if it's not considered NaN, parsing it and checking for NaN will fully determine whether it is numerical
   }
 
   return true;
