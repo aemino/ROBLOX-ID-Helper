@@ -182,9 +182,11 @@ function getIdFromUrl(url) {
 
   if (splitUrl.length !== 2) { return null; } // ?id= wasn't found in the url
 
-  if (isNaN(splitUrl[1])) { return null; } // id somehow wasn't numerical
+  if (isNaN(splitUrl[1])) { return null; } // id wasn't numerical
 
   var id = parseInt(splitUrl[1]);
+
+  if (isNaN(id)) { return null; } // if it's not considered NaN, parsing it and checking for NaN will fully determine whether it is numerical
 
   return id;
 }
