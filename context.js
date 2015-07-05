@@ -122,6 +122,33 @@ function copyImageId(url, list) {
 
   var userId = getProductInfo(id).Creator.Id; // the owner of the decal
 
+  function popupComplete() {
+    var closed = false;
+
+    function sendCompletedMessage() {
+      chrome.runtime.sendMessage({message: "findImageIdComplete"}, function() {
+        closed = true;
+      }); // done, tell the processing popup to close
+
+      if (!closed) {
+        // it probably won't have updated by this point, but whatever :D
+
+        chrome.alarms.onAlarm.addListener(function sendCompleted(alarm) {
+          if (alarm.name === "sendCompletedMessage") {
+            chrome.alarms.onAlarm.removeListener(sendCompleted);
+            chrome.alarms.clear("sendCompletedMessage");
+
+            sendCompletedMessage(); // try again
+          }
+        });
+
+        chrome.alarms.create("sendCompletedMessage", {when: (new Date().getTime()) + 200}); // wait 0.2 seconds
+      }
+    }
+
+    sendCompletedMessage();
+  }
+
   function checkId(Id) {
     chrome.runtime.sendMessage({message: "findImageIdAttempt", id: Id});
 
@@ -141,7 +168,7 @@ function copyImageId(url, list) {
         writeClipboard(Id);
       }
 
-      chrome.runtime.sendMessage({message: "findImageIdComplete"}); // done, tell the processing popup to close
+      popupComplete();
       return;
     }
 
@@ -154,7 +181,7 @@ function copyImageId(url, list) {
         }
       });
 
-      chrome.alarms.create("attemptCooldown", {when: (new Date().getTime()) + 100}); // wait 0.1 seconds before attempting the next request
+      chrome.alarms.create("attemptCooldown", {when: (new Date().getTime()) + 500}); // wait 0.5 seconds before attempting the next request
     }
     else {
       // give up after checking 10 ids
@@ -201,19 +228,6 @@ function getProductInfo(assetId) {
   return response;
 }
 
-function writeClipboardList(id) {
-  var clipboardText = readClipboard();
-
-  if (isIdList(clipboardText)) {
-    var idList = clipboardText + ", " + id;
-
-    writeClipboard(idList);
-  }
-  else {
-    writeClipboard(id);
-  }
-}
-
 function isIdList(str) {
   var splitStr = str.split(", ");
 
@@ -249,4 +263,17 @@ function writeClipboard(clipboardText) {
   input.select();
   document.execCommand("Copy");
   input.remove();
+}
+
+function writeClipboardList(id) {
+  var clipboardText = readClipboard();
+
+  if (isIdList(clipboardText)) {
+    var idList = clipboardText + ", " + id;
+
+    writeClipboard(idList);
+  }
+  else {
+    writeClipboard(id);
+  }
 }

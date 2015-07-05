@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
   id = document.getElementById("id");
 });
 
-chrome.runtime.onMessage.addListener(function(request) {
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  console.log("receieved message: " + request.message);
   if (request.message === "findImageIdAttempt") {
     if (id !== null) {
       id.innerHTML = request.id;
@@ -17,6 +18,7 @@ chrome.runtime.onMessage.addListener(function(request) {
   }
 
   if (request.message === "findImageIdComplete") {
+    sendResponse(); // no data needed, we know it means that the window closed successfully
     window.close(); // done! close the popup
   }
 
