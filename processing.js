@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  console.log("receieved message: " + request.message);
   if (request.message === "findImageIdAttempt") {
     if (id !== null) {
       id.innerHTML = request.id;
