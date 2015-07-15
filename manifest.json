@@ -3,7 +3,7 @@
 
   "name": "ROBLOX ID Helper",
   "description": "Easily copy ids of ROBLOX assets and find decal image ids.",
-  "version": "1.0.3",
+  "version": "1.0.4",
 
   "background": {
     "scripts": ["context.js"],
@@ -22,7 +22,6 @@
     "*://www.roblox.com/*item*",
     "*://api.roblox.com/*",
     "alarms",
-    "tabs",
     "contextMenus",
     "clipboardWrite",
     "clipboardRead",

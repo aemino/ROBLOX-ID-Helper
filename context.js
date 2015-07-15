@@ -4,61 +4,41 @@ chrome.runtime.onInstalled.addListener(function() {
   chrome.contextMenus.create({
     id: "copyId",
     title: "Copy ROBLOX id",
-    contexts: ["page", "image"],
-    documentUrlPatterns: ["*://www.roblox.com/*item*"]
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
   });
 
   chrome.contextMenus.create({
     id: "copyIdToList",
     title: "Copy ROBLOX id to list",
-    contexts: ["page", "image"],
-    documentUrlPatterns: ["*://www.roblox.com/*item*"]
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
   });
 
   chrome.contextMenus.create({
     id: "clearIdList",
     title: "Clear ROBLOX id list",
-    contexts: ["page", "image"],
-    documentUrlPatterns: ["*://www.roblox.com/*item*"]
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
   });
 
+  chrome.contextMenus.create({
+    id: "copyImageId",
+    title: "Copy ROBLOX image id from decal",
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+  });
 
-  // CONTEXTUAL ENABLING //
-
-  chrome.tabs.onUpdated.addListener(function(tabId, tabInfo) {
-    var url = tabInfo.url
-
-    if (url === undefined) { return; }
-
-    var id = getIdFromUrl(url);
-
-    if (id === null) { return; } // ignore, no id
-
-    var productInfo = getProductInfo(id);
-
-    if (productInfo.AssetTypeId === 13) {
-      // decal, show decal context options
-
-      chrome.contextMenus.create({
-        id: "copyImageId",
-        title: "Copy ROBLOX image id from decal",
-        contexts: ["page", "image"],
-        documentUrlPatterns: ["*://www.roblox.com/*item*"],
-      });
-
-      chrome.contextMenus.create({
-        id: "copyImageIdToList",
-        title: "Copy ROBLOX image id to list from decal",
-        contexts: ["page", "image"],
-        documentUrlPatterns: ["*://www.roblox.com/*item*"],
-      });
-    }
-    else {
-      // not a decal, remove the contextual options if they exist
-
-      chrome.contextMenus.remove("copyImageId");
-      chrome.contextMenus.remove("copyImageIdToList");
-    }
+  chrome.contextMenus.create({
+    id: "copyImageIdToList",
+    title: "Copy ROBLOX image id to list from decal",
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
   });
 });
 
@@ -68,21 +48,24 @@ chrome.runtime.onInstalled.addListener(function() {
 chrome.contextMenus.onClicked.addListener(function(info) {
   var id = info.menuItemId;
   var pageUrl = info.pageUrl;
+  var linkUrl = info.linkUrl;
+
+  var url = (linkUrl ? linkUrl : pageUrl);
 
   if (id === "copyId") {
-    copyId(pageUrl, false);
+    copyId(url, false);
   }
 
   if (id === "copyImageId") {
-    copyImageId(pageUrl, false);
+    copyImageId(url, false);
   }
 
   if (id === "copyIdToList") {
-    copyId(pageUrl, true);
+    copyId(url, true);
   }
 
   if (id === "copyImageIdToList") {
-    copyImageId(pageUrl, true);
+    copyImageId(url, true);
   }
 
   if (id === "clearIdList") {
@@ -120,37 +103,44 @@ function copyImageId(url, list) {
 
   chrome.alarms.clear("attemptCooldown");
 
-  var userId = getProductInfo(id).Creator.Id; // the owner of the decal
+  var productInfo = getProductInfo(id);
 
-  function popupComplete() {
-    var closed = false;
+  if (productInfo.AssetTypeId !== 13) {
+    sendPopupMessage({message: "findImageIdFailed"}); // not a decal, inform the processing popup
+    return;
+  }
 
-    function sendCompletedMessage() {
-      chrome.runtime.sendMessage({message: "findImageIdComplete"}, function() {
-        closed = true;
+  var userId = productInfo.Creator.Id; // the owner of the decal
+
+  function sendPopupMessage(message) {
+    var received = false;
+
+    function sendMessage() {
+      chrome.runtime.sendMessage(message, function() {
+        received = true;
       }); // done, tell the processing popup to close
 
-      if (!closed) {
+      if (!received) {
         // it probably won't have updated by this point, but whatever :D
 
         chrome.alarms.onAlarm.addListener(function sendCompleted(alarm) {
-          if (alarm.name === "sendCompletedMessage") {
+          if (alarm.name === "sendMessage") {
             chrome.alarms.onAlarm.removeListener(sendCompleted);
-            chrome.alarms.clear("sendCompletedMessage");
+            chrome.alarms.clear("sendMessage");
 
-            sendCompletedMessage(); // try again
+            sendMessage(); // try again
           }
         });
 
-        chrome.alarms.create("sendCompletedMessage", {when: (new Date().getTime()) + 200}); // wait 0.2 seconds
+        chrome.alarms.create("sendMessage", {when: (new Date().getTime()) + 200}); // wait 0.2 seconds
       }
     }
 
-    sendCompletedMessage();
+    sendMessage();
   }
 
   function checkId(Id) {
-    chrome.runtime.sendMessage({message: "findImageIdAttempt", id: Id});
+    sendPopupMessage({message: "findImageIdAttempt", id: Id});
 
     chrome.alarms.clear("attemptCooldown");
 
@@ -168,7 +158,7 @@ function copyImageId(url, list) {
         writeClipboard(Id);
       }
 
-      popupComplete();
+      sendPopupMessage({message: "findImageIdComplete"})
       return;
     }
 
@@ -188,7 +178,7 @@ function copyImageId(url, list) {
 
       chrome.alarms.clear("attemptCooldown");
 
-      chrome.runtime.sendMessage({message: "findImageIdFailed"}); // failed, inform the processing popup
+      sendPopupMessage({message: "findImageIdFailed"}); // failed, inform the processing popup
       return;
     }
   }

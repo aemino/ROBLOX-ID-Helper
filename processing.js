@@ -23,8 +23,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
   if (request.message === "findImageIdFailed") {
     // failed
-    title.innerHTML = "Failed to retreive the image id for this decal"
-    subtitle.innerHTML = "(You can close this window)"
+    title.innerHTML = "Failed to retreive the image id"
+    subtitle.innerHTML = "Make sure you're trying to find the image id of a decal.<br>(You can close this window)"
     id.innerHTML = "";
   }
 });
