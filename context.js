@@ -18,14 +18,6 @@ chrome.runtime.onInstalled.addListener(function() {
   });
 
   chrome.contextMenus.create({
-    id: "clearIdList",
-    title: "Clear ROBLOX id list",
-    contexts: ["page", "image", "link"],
-    documentUrlPatterns: ["*://www.roblox.com/*"],
-    targetUrlPatterns: ["*://www.roblox.com/*item*"]
-  });
-
-  chrome.contextMenus.create({
     id: "copyImageId",
     title: "Copy ROBLOX image id from decal",
     contexts: ["page", "image", "link"],
@@ -36,6 +28,30 @@ chrome.runtime.onInstalled.addListener(function() {
   chrome.contextMenus.create({
     id: "copyImageIdToList",
     title: "Copy ROBLOX image id to list from decal",
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+  });
+
+  chrome.contextMenus.create({
+      id: "copyUserId",
+      title: "Copy ROBLOX user id",
+      contexts: ["page", "image", "link"],
+      documentUrlPatterns: ["*://www.roblox.com/*"],
+      targetUrlPatterns: ["*://www.roblox.com/user*"]
+  });
+
+  chrome.contextMenus.create({
+    id: "copyUserIdToList",
+    title: "Copy ROBLOX user id to list",
+    contexts: ["page", "image", "link"],
+    documentUrlPatterns: ["*://www.roblox.com/*"],
+    targetUrlPatterns: ["*://www.roblox.com/user*"]
+  });
+
+  chrome.contextMenus.create({
+    id: "clearIdList",
+    title: "Clear ROBLOX id list",
     contexts: ["page", "image", "link"],
     documentUrlPatterns: ["*://www.roblox.com/*"],
     targetUrlPatterns: ["*://www.roblox.com/*item*"]
@@ -51,21 +67,30 @@ chrome.contextMenus.onClicked.addListener(function(info) {
   var linkUrl = info.linkUrl;
 
   var url = (linkUrl ? linkUrl : pageUrl);
+  url = url.toLowerCase().replace("&forcepublicview=true", "");
 
   if (id === "copyId") {
     copyId(url, false);
-  }
-
-  if (id === "copyImageId") {
-    copyImageId(url, false);
   }
 
   if (id === "copyIdToList") {
     copyId(url, true);
   }
 
+  if (id === "copyImageId") {
+    copyImageId(url, false);
+  }
+
   if (id === "copyImageIdToList") {
     copyImageId(url, true);
+  }
+
+  if (id === "copyUserId") {
+    copyId(url, false);
+  }
+
+  if (id === "copyUserIdtoList") {
+    copyId(url, true);
   }
 
   if (id === "clearIdList") {
@@ -200,7 +225,7 @@ function clearIdList() {
 // UTILITIES //
 
 function getIdFromUrl(url) {
-  var splitUrl = url.split("?id=", 2);
+  var splitUrl = url.toLowerCase().split("?id=", 2);
 
   if (splitUrl.length !== 2) { return null; } // ?id= wasn't found in the url
 
