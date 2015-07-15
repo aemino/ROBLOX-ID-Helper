@@ -116,8 +116,14 @@ function copyImageId(url, list) {
     var received = false;
 
     function sendMessage() {
-      chrome.runtime.sendMessage(message, function() {
+      chrome.runtime.sendMessage(message, function(response) {
         received = true;
+
+        if (response === true ) {
+          // the popup closed
+
+          chrome.alarms.clear("sendMessage"); // make sure the timer is cleared
+        }
       }); // done, tell the processing popup to close
 
       if (!received) {
