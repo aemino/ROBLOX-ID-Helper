@@ -1,6 +1,6 @@
-// REGISTER CONTEXT MENUS //
+// REGISTER CONTEXT MENU //
 
-chrome.runtime.onInstalled.addListener(function() {
+function createContextMenu() {
   chrome.contextMenus.create({
     id: "copyId",
     title: "Copy ROBLOX id",
@@ -56,6 +56,14 @@ chrome.runtime.onInstalled.addListener(function() {
     documentUrlPatterns: ["*://www.roblox.com/*"],
     targetUrlPatterns: ["*://www.roblox.com/*item*"]
   });
+}
+
+chrome.runtime.onInstalled.addListener(function() {
+  createContextMenu();
+});
+
+chrome.runtime.onEnabled.addListener(function() {
+  createContextMenu();
 });
 
 
