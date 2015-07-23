@@ -25,7 +25,6 @@
     "contextMenus",
     "clipboardRead",
     "clipboardWrite",
-    "notifications",
-    "management"
+    "notifications"
   ]
 }

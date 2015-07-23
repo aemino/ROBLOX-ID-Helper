@@ -1,6 +1,6 @@
-// REGISTER CONTEXT MENU //
+// REGISTER CONTEXT MENUS //
 
-function createContextMenu() {
+function createContextMenus() {
   chrome.contextMenus.create({
     id: "copyId",
     title: "Copy ROBLOX id",
@@ -58,13 +58,8 @@ function createContextMenu() {
   });
 }
 
-chrome.runtime.onInstalled.addListener(function() {
-  createContextMenu();
-});
-
-chrome.runtime.onEnabled.addListener(function() {
-  createContextMenu();
-});
+chrome.contextMenus.removeAll();
+createContextMenus();
 
 
 // DECLARE HANDLER USAGE //
