@@ -6,7 +6,7 @@ function createContextMenus() {
     title: "Copy ROBLOX id",
     contexts: ["page", "image", "link"],
     documentUrlPatterns: ["*://www.roblox.com/*"],
-    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+    targetUrlPatterns: ["*://www.roblox.com/*item*", "*://www.roblox.com/item*"]
   });
 
   chrome.contextMenus.create({
@@ -14,7 +14,7 @@ function createContextMenus() {
     title: "Copy ROBLOX id to list",
     contexts: ["page", "image", "link"],
     documentUrlPatterns: ["*://www.roblox.com/*"],
-    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+    targetUrlPatterns: ["*://www.roblox.com/*item*", "*://www.roblox.com/item*"]
   });
 
   chrome.contextMenus.create({
@@ -22,7 +22,7 @@ function createContextMenus() {
     title: "Copy ROBLOX image id from decal",
     contexts: ["page", "image", "link"],
     documentUrlPatterns: ["*://www.roblox.com/*"],
-    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+    targetUrlPatterns: ["*://www.roblox.com/*item*", "*://www.roblox.com/item*"]
   });
 
   chrome.contextMenus.create({
@@ -30,7 +30,7 @@ function createContextMenus() {
     title: "Copy ROBLOX image id to list from decal",
     contexts: ["page", "image", "link"],
     documentUrlPatterns: ["*://www.roblox.com/*"],
-    targetUrlPatterns: ["*://www.roblox.com/*item*"]
+    targetUrlPatterns: ["*://www.roblox.com/item*"]
   });
 
   chrome.contextMenus.create({
@@ -144,10 +144,15 @@ function copyImageId(url, list) {
     var received = false;
 
     function sendMessage() {
+      console.log("sending message");
       chrome.runtime.sendMessage(message, function(response) {
+        console.log("received response");
+
+        if (response.message !== "popupMessageReceived") { return; }
+
         received = true;
 
-        if (response === true ) {
+        if (response.closed) {
           // the popup closed
 
           chrome.alarms.clear("sendMessage"); // make sure the timer is cleared
